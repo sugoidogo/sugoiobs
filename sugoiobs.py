@@ -29,10 +29,8 @@ def pip_install(*args,target=join(get_data_dir(),'packages')):
     path.insert(1, target)
     pip.main(['install','--no-warn-script-location','--progress-bar=off','--target='+target,'--upgrade',*args])
 
-def silence(log_path=join(get_data_dir(),'sugoiobs.log')):
-    log_file=open(log_path,'wb')
-    sys.stdout=log_file
-    sys.stderr=log_file
+def silence():
+    sys.stderr=sys.stdout
 
 def start_server(static_dir=join(get_data_dir(),'static')):
     class PluginHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -167,7 +165,7 @@ def init():
 def script_load(settings):
     if update():
         print('Update downloaded, please restart OBS')
-    #silence()
+    silence()
     Thread(target=init,name='sugoiobs.py init').start()
 
 def script_unload():
