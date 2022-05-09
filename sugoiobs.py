@@ -1,10 +1,9 @@
 from threading import Thread
 from os.path import basename,splitext,join
 from sys import platform,path,executable
-from os import environ,makedirs
+from os import environ,makedirs,system
 from http.server import HTTPServer,SimpleHTTPRequestHandler
 from traceback import format_exc,print_exc
-from subprocess import Popen
 from urllib.request import urlopen
 import pip
 import sys
@@ -188,7 +187,7 @@ def script_description():
 if __name__ == '__main__':
     if update():
         print('Update downloaded, restarting')
-        Popen(executable+' '+__file__)
+        exit(system(executable+' '+__file__))
     else:
         init()
         input('Press enter to stop\n')
