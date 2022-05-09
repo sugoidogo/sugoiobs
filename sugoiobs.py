@@ -167,7 +167,7 @@ def init():
 def script_load(settings):
     if update():
         print('Update downloaded, please restart OBS')
-    silence()
+    #silence()
     Thread(target=init,name='sugoiobs.py init').start()
 
 def script_unload():
