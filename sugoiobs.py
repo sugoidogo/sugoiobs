@@ -5,7 +5,7 @@ from os import environ,makedirs
 from http.server import HTTPServer,SimpleHTTPRequestHandler
 from traceback import format_exc,print_exc
 from subprocess import Popen
-from urllib.request import urlretrieve
+from urllib.request import urlopen
 import pip
 import sys
 import urllib
@@ -141,12 +141,15 @@ def open_data_dir(*args):
 
 def update():
     try:
-        f=open(__file__,'r')
+        u=urlopen('https://github.com/sugoidogo/sugoiobs/releases/latest/download/sugoiobs.py')
+        new=u.read()
+        u.close
+        f=open(__file__,'r+b')
         old=f.read()
-        f.close()
-        urlretrieve('https://github.com/sugoidogo/sugoiobs/releases/latest/download/sugoiobs.py',__file__)
-        f=open(__file__,'r')
-        new=f.read()
+        if(old != new):
+            f.seek(0)
+            f.truncate()
+            f.write(new)
         f.close()
         return old != new
     except:
