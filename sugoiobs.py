@@ -191,5 +191,5 @@ if __name__ == '__main__':
         Popen(executable+' '+__file__)
     else:
         init()
-        input('Press enter to stop')
+        input('Press enter to stop\n')
         script_unload()
