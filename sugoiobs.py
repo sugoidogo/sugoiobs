@@ -28,7 +28,7 @@ def get_data_dir(name=None):
 
 def pip_install(*args,target=join(get_data_dir(),'packages')):
     path.insert(1, target)
-    pip.main(['install','--no-warn-script-location','--progress-bar=off','--target='+target,*args])
+    pip.main(['install','--no-warn-script-location','--progress-bar=off','--target='+target,'--upgrade',*args])
 
 def silence(log_path=join(get_data_dir(),'sugoiobs.log')):
     log_file=open(log_path,'wb')
@@ -46,6 +46,9 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             }
         def translate_path(self, path):
             return join(static_dir,path[1:])
+        def end_headers(self):
+            self.send_header('Access-Control-Allow-Origin', '*')
+            return super().end_headers()
         def do_ERROR(self,e):
             self.send_error(500,str(e),format_exc())
         def do_PUT_SSE(self):
