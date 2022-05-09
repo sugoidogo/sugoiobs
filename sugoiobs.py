@@ -141,8 +141,13 @@ def open_data_dir(*args):
 
 def update():
     try:
-        old=open(__file__,'r').read()
-        new=urlretrieve('https://github.com/sugoidogo/sugoiobs/releases/latest/download/sugoiobs.py',__file__)[1].read()
+        f=open(__file__,'r')
+        old=f.read()
+        f.close()
+        urlretrieve('https://github.com/sugoidogo/sugoiobs/releases/latest/download/sugoiobs.py',__file__)
+        f=open(__file__,'r')
+        new=f.read()
+        f.close()
         return old != new
     except:
         print('The auto-updater encountered an issue')
