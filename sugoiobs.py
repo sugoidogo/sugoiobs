@@ -48,6 +48,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             return super().end_headers()
         def do_ERROR(self,e):
             self.send_error(500,str(e),format_exc())
+            print_exc()
         def do_PUT_SSE(self):
             if self.path not in sse.keys():
                 self.initSSEPath(self.path[1:])
