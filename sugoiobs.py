@@ -111,7 +111,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
                         print_exc()
                 with sounddevice.InputStream(device=device,callback=audioCallback):
                     while not self.wfile.closed:
-                        sounddevice.sleep(100)
+                        sounddevice.sleep(1)
             Thread(target=audioLoop,name='sugoiobs.py audioLoop').start()
         def do_GET(self):
             try:
