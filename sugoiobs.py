@@ -108,7 +108,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
                         self.wfile.write(message.encode())
                         self.wfile.flush()
                     except:
-                        pass
+                        print_exc()
                 with sounddevice.InputStream(device=device,callback=audioCallback):
                     while not self.wfile.closed:
                         sounddevice.sleep(100)
