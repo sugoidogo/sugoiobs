@@ -151,7 +151,8 @@ def update():
             f.truncate()
             f.write(new)
         f.close()
-        return old != new
+        if (old != new):
+            sys.stderr.write("update downloaded, please restart the program\n")
     except:
         print('The auto-updater encountered an issue')
         print_exc()
@@ -163,8 +164,7 @@ def init():
     start_server()
 
 def script_load(settings):
-    if update():
-        print('Update downloaded, please restart OBS')
+    update()
     silence()
     Thread(target=init,name='sugoiobs.py init').start()
 
@@ -183,10 +183,7 @@ def script_description():
     """
 
 if __name__ == '__main__':
-    if update():
-        print('Update downloaded, restarting')
-        exit(system(executable+' '+__file__))
-    else:
-        init()
-        input('Press enter to stop\n')
-        script_unload()
+    update()
+    init()
+    input('Press enter to stop\n')
+    script_unload()
