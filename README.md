@@ -1,7 +1,7 @@
 # SugoiOBS
 A plugin script for OBS exposing additional functionality via a web server.
 ## Getting started
-On Windows, OBS requires you manually locate a Python 3.6 interpreter before you can use Python plugin scripts. [This installer]() can automate that process for you. On all other platforms, install python as usual.
+On Windows, OBS requires you manually locate a Python 3.6 interpreter before you can use Python plugin scripts. [This installer](https://github.com/sugoidogo/obs-python-installer) can automate that process for you. On all other platforms, install python as usual. Then you can [download this script](https://github.com/sugoidogo/sugoiobs/releases/latest/download/sugoiobs.py)
 ## Running the script
 This script is primarily designed to run as an OBS plugin script, via the `Tools > Scripts` menu, but it can also be run standalone. When used as an OBS plugin script, the server is automatically started and stopped with obs, and a log file is generated in the script's data folder. When run standalone, the log is output directly to console. Specifically, `stdout` and `stderr` are redirected to a file when run under obs, because both `pip` and `http.server` are very verbose and each line output triggers obs to pop up the script log. This may cause any other python scripts running in obs to output to the sugoiobs log file as well, because OBS appears to run all scripts under one interpreter instance. **This is considered a bug and any PR attempting to fix it is welcome.**
 ## GET and PUT
