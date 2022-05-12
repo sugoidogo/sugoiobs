@@ -38,7 +38,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         sse={}
         def initSSEPath(self,path):
             sse[path]={
-                history:[],
+                #history:[],
                 clients:[]
             }
         def translate_path(self, path):
@@ -60,12 +60,19 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             if self.path not in sse.keys():
                 self.initSSEPath(self.path[1:])
             message=self.rfile.read()
-            sse[self.path].history.append(message)
-            self.send_response(202)
+            #sse[self.path].history.append(message)
+            errors=[]
             for client in sse[self.path].clients:
                 if not client.closed:
-                    client.write(message+'\n\n'.encode())
-                    client.flush()
+                    try:
+                        client.write(message+'\n\n'.encode())
+                        client.flush()
+                    except Exception as e:
+                        errors.append(e)
+            if(len(errors)>0):
+                self.do_ERROR(*errors)
+            else:
+                self.send_response(200)
         def do_PUT(self):
             try:
                 if(self.path.endswith("#sse")):
@@ -84,8 +91,8 @@ def start_server(static_dir=join(get_data_dir(),'static')):
                 self.end_headers()
                 if self.path not in sse.keys():
                     self.initSSEPath(self.path)
-                for message in sse[self.path].history:
-                    self.wfile.write(message+'\n\n'.encode())
+                #for message in sse[self.path].history:
+                #    self.wfile.write(message+'\n\n'.encode())
                 sse[self.path].clients.append(self.wfile)
         def do_GET_AUDIO(self):
             import sounddevice,numpy
