@@ -7,6 +7,6 @@ This script is primarily designed to run as an OBS plugin script, via the `Tools
 ## GET and PUT
 The web server doesn't come with any data to `GET`, but you can `PUT` data to any path under the web root that you'd want to get later.
 ## Server Sent Events
-Using the hash `#sse` at the end of any path causes the web server to treat it as an SSE endpoint. `GET` requests will immediately receive the SSE headers and the history of any messages `PUT` to the same path, along with any future messages. `PUT` requests will receive a `202` response once the data has been stored in the history buffer, and then the data is sent to each connected SSE client.
+Using the hash `#sse` at the end of any path causes the web server to treat it as an SSE endpoint. `GET` requests will immediately receive the SSE headers and any future messages `PUT` to that same path. `PUT` requests will receive a `200` response if all connected SSE clients received the message without error, or a `500` response if any connected clients failed to receive a message.
 ## Audio Levels
 A basic audio level endpoint is availible for clients to get the current audio level of any audio input device. `GET /audio/` will return a JSON-encoded list of availible audio devices, `GET /audio/devicename` is an SSE endpoint that will send the current audio level as an interger string, and `GET /audio` will do the same with the default input device.
