@@ -46,9 +46,16 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         def end_headers(self):
             self.send_header('Access-Control-Allow-Origin', '*')
             return super().end_headers()
-        def do_ERROR(self,e):
-            self.send_error(500,str(e),format_exc())
-            print_exc()
+        def do_ERROR(self,*errors):
+            if(len(e)==1):
+                self.send_error(500,str(errors[0]),format_exc())
+                return print_exc()
+            message='multiple exceptions'
+            explain='multiple exceptions:\n'
+            for error in errors:
+                explain+=str(error)+'\n'
+                pass
+            self.send_error(500,message,explain)
         def do_PUT_SSE(self):
             if self.path not in sse.keys():
                 self.initSSEPath(self.path[1:])
