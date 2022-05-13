@@ -35,12 +35,8 @@ def silence():
 def start_server(static_dir=join(get_data_dir(),'static')):
     class PluginHTTPRequestHandler(SimpleHTTPRequestHandler):
         protocol_version='HTTP/1.1'
-        sse={}
-        def initSSEPath(self,path):
-            sse[path]={
-                #history:[],
-                clients:[]
-            }
+        sse={} # Dict[str,List[BytesIO]]
+        sseListeners=[] # List[BytesIO]
         def translate_path(self, path):
             return join(static_dir,path[1:])
         def end_headers(self):
@@ -57,22 +53,18 @@ def start_server(static_dir=join(get_data_dir(),'static')):
                 pass
             self.send_error(500,message,explain)
         def do_PUT_SSE(self):
-            if self.path not in sse.keys():
-                self.initSSEPath(self.path[1:])
-            message=self.rfile.read()
-            #sse[self.path].history.append(message)
-            errors=[]
-            for client in sse[self.path].clients:
-                if not client.closed:
-                    try:
-                        client.write(message+'\n\n'.encode())
-                        client.flush()
-                    except Exception as e:
-                        errors.append(e)
-            if(len(errors)>0):
-                self.do_ERROR(*errors)
-            else:
-                self.send_response(200)
+            if(self.path not in self.sse.keys()):
+                self.send_error(404)
+            client_count=0
+            for client in self.sse[self.path]:
+                if(client.closed):
+                    continue
+                client.write('data: '+self.rfile.read().decode()+'\n\n')
+                client.flush()
+                client_count+=1
+            if(client_count==0):
+                return self.send_error(404)
+            return self.send_response(200)
         def do_PUT(self):
             try:
                 if(self.path.endswith("#sse")):
@@ -85,15 +77,28 @@ def start_server(static_dir=join(get_data_dir(),'static')):
                     return self.send_response(200)
             except Exception as e:
                 return self.do_ERROR(e)
+        def do_GET_SSE_CLIENTS():
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/event-stream')
+            self.end_headers()
+            for path in self.sse.keys():
+                if(self.wfile.closed):
+                    return
+                self.wfile.write('data: '+path+'\n\n')
+            self.sseListeners.append(self.wfile)
+        def do_INFORM_SSE_LISTENERS(path):
+            for listener in self.sseListeners:
+                if(listener.closed):
+                    continue
+                listener.write('data: '+path+'\n\n')
         def do_GET_SSE(self):
-                self.send_response(200)
-                self.send_header('Content-Type', 'text/event-stream')
-                self.end_headers()
-                if self.path not in sse.keys():
-                    self.initSSEPath(self.path)
-                #for message in sse[self.path].history:
-                #    self.wfile.write(message+'\n\n'.encode())
-                sse[self.path].clients.append(self.wfile)
+            if(self.path not in self.sse.keys()):
+                self.sse[self.path]=[]
+            self.sse[self.path].append(self.wfile)
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/event-stream')
+            self.end_headers()
+            Thread(target=self.do_INFORM_SSE_LISTENERS,args=[path]).start()
         def do_GET_AUDIO(self):
             import sounddevice,numpy
             if self.path == '/audio/':
@@ -132,10 +137,11 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             try:
                 if self.path.startswith('/audio'):
                     return self.do_GET_AUDIO()
-                elif(self.path.endswith("#sse")):
+                if self.path=='/#sse':
+                    return self.do_GET_SSE_CLIENTS()
+                if self.path.endswith("#sse"):
                     return self.do_GET_SSE()
-                else:
-                    return super().do_GET()
+                return super().do_GET()
             except Exception as e:
                 return self.do_ERROR(e)
     makedirs(static_dir,exist_ok=True)
