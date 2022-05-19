@@ -26,6 +26,9 @@ def get_data_dir(name=None):
     return join(base,name)
 
 def pip_install(*args,target=join(get_data_dir(),'packages')):
+    if('--no-pip' in sys.argv):
+        print('skipping pip install')
+        return
     from sys import platform
     import importlib.util
     if platform=='win32' and importlib.util.find_spec('obspython') is not None:
@@ -177,6 +180,9 @@ def open_data_dir(*args):
     Popen(command)
 
 def update():
+    if('--no-update' in sys.argv):
+        print('skipping self update')
+        return
     try:
         u=urlopen('https://github.com/sugoidogo/sugoiobs/releases/latest/download/sugoiobs.py')
         new=u.read()
@@ -196,12 +202,11 @@ def update():
         return False
 
 def init():
+    update()
     pip_install('sounddevice','numpy')
     start_server()
 
 def script_load(settings):
-    update()
-    silence()
     Thread(target=init,name='sugoiobs.py init').start()
 
 def script_unload():
@@ -219,7 +224,6 @@ def script_description():
     """
 
 if __name__ == '__main__':
-    update()
     init()
     input('Press enter to stop\n')
     script_unload()
