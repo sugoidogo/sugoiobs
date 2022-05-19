@@ -171,9 +171,8 @@ def update():
             f.seek(0)
             f.truncate()
             f.write(new)
-        f.close()
-        if (old != new):
             sys.stderr.write("update downloaded, please restart the program\n")
+        f.close()
     except:
         print('The auto-updater encountered an issue')
         print_exc()
