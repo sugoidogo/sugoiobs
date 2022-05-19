@@ -174,7 +174,6 @@ def open_data_dir(*args):
     else:
         command='xdg-open "'
     command+=get_data_dir()+'"'
-    print(command)
     Popen(command)
 
 def update():
