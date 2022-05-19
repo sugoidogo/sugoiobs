@@ -20,9 +20,11 @@ def get_data_dir(name=None):
     if name == None:
         name=splitext(basename(__file__))[0]
     if platform=='win32':
-        base=environ['appdata']
+        base=environ['APPDATA']
+    elif platform=='darwin':
+        base=join(environ['HOME'],'Library','Application Support')
     else:
-        base=environ['HOME']
+        base=join(environ['HOME'],'.config')
     return join(base,name)
 
 def pip_install(*args,target=join(get_data_dir(),'packages')):
