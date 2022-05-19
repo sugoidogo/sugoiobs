@@ -26,11 +26,28 @@ def get_data_dir(name=None):
     return join(base,name)
 
 def pip_install(*args,target=join(get_data_dir(),'packages')):
-    path.insert(1, target)
-    pip.main(['install','--no-warn-script-location','--progress-bar=off','--target='+target,'--upgrade',*args])
-
-def silence():
-    sys.stderr=sys.stdout
+    from sys import platform
+    import importlib.util
+    if platform=='win32' and importlib.util.find_spec('obspython') is not None:
+        from configparser import ConfigParser
+        config=ConfigParser()
+        obs_ini_path=join(get_data_dir('obs-studio'),'global.ini')
+        obs_ini=open(obs_ini_path,'r',encoding='utf-8')
+        config.read_string(obs_ini.read().replace('\ufeff',''))
+        obs_ini.close()
+        from sys import maxsize
+        if maxsize > 2**32: # https://docs.python.org/3/library/platform.html#platform.architecture
+            python=config['Python']['path64bit']
+        else:
+            python=config['Python']['path32bit']
+        python=join(python,'python.exe')
+    else:
+        from sys import executable
+        python=executable
+    from subprocess import run
+    run([python,'-m','pip','install','--no-warn-script-location','--progress-bar=off','--target='+target,*args],shell=True)
+    from sys import path
+    path.append(target)
 
 def start_server(static_dir=join(get_data_dir(),'static')):
     class PluginHTTPRequestHandler(SimpleHTTPRequestHandler):
