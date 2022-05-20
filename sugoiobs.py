@@ -135,7 +135,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         for wfile in sseClients[path]:
             if wfile.closed:
                 continue
-            wfile.write('data: '+message+'\n\n'.encode())
+            wfile.write('data: '+str(message)+'\n\n'.encode())
             sent=True
         return sent
     def sseGet(request):
