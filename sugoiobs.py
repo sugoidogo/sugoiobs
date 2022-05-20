@@ -64,6 +64,8 @@ def start_server(static_dir=join(get_data_dir(),'static')):
     } # dict[method][pathRegex]=function
     class RegexRequestHandler(SimpleHTTPRequestHandler):
         protocol_version='HTTP/1.1'
+        def log_message(self,format,*args):
+            print(format % args)
         def translate_path(self,path):
             path=normpath(join(static_dir,path))
             if path.startswith(static_dir):
