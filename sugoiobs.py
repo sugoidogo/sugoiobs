@@ -123,6 +123,34 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             while not request.wfile.closed:
                 sounddevice.sleep(16)
     pathFunctions['GET']['/audio']=audio
+    sseClients={} # dict[path]=list[bytesio]
+    def sseSend(path,message):
+        if(path not in sseClients):
+            return False
+        if(len(sseClients[path])==0):
+            return False
+        sent=False
+        for wfile in sseClients[path]:
+            if wfile.closed:
+                continue
+            wfile.write('data: '+message+'\n\n'.encode())
+            sent=True
+        return sent
+    def sseGet(request):
+        if request.path not in sseClients:
+            sseClients[request.path]=[]
+        sseClients[request.path].append(request.wfile)
+        request.send_response(200)
+        request.send_header('Content-Type','text/event-stream')
+        request.end_headers()
+        sseSend('/sse',request.path)
+    def ssePost(request):
+        message=request.rfile.read().decode()
+        if not sseSend(request.path,message):
+            return send_error(404)
+        return send_response(200)
+    pathFunctions['GET']['/sse']=sseGet
+    pathFunctions['POST']['/sse']=ssePost
     global server
     server=HTTPServer(('localhost',5000), RegexRequestHandler)
     Thread(target=server.serve_forever,name='sugoiobs.py HTTPServer').start()
