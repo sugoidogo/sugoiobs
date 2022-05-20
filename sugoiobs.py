@@ -28,6 +28,8 @@ def get_data_dir(name=None):
     return join(base,name)
 
 def pip_install(*args,target=join(get_data_dir(),'packages')):
+    from sys import path
+    path.append(target)
     if('--no-pip' in sys.argv):
         print('skipping pip install')
         return
@@ -51,8 +53,6 @@ def pip_install(*args,target=join(get_data_dir(),'packages')):
         python=executable
     from subprocess import run
     run([python,'-m','pip','install','--no-warn-script-location','--progress-bar=off','--target='+target,*args],shell=True)
-    from sys import path
-    path.append(target)
 
 def start_server(static_dir=join(get_data_dir(),'static')):
     class PluginHTTPRequestHandler(SimpleHTTPRequestHandler):
