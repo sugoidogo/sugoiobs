@@ -182,12 +182,13 @@ def update():
             f.truncate()
             f.write(new)
             sys.stderr.write("update downloaded, please restart the program\n")
+            return True
         f.close()
     except:
         print('The auto-updater encountered an issue')
         print_exc()
         print('The script will continue with the current version')
-        return False
+    return False
 
 def init():
     update()
