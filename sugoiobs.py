@@ -150,7 +150,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             return send_error(404)
         return send_response(200)
     pathFunctions['GET']['/sse']=sseGet
-    pathFunctions['POST']['/sse']=ssePost
+    pathFunctions['POST']['/sse/']=ssePost
     global server
     server=HTTPServer(('localhost',5000), RegexRequestHandler)
     Thread(target=server.serve_forever,name='sugoiobs.py HTTPServer').start()
