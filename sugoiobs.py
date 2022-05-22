@@ -126,7 +126,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
                 sounddevice.sleep(16)
     pathFunctions['GET']['/audio']=audio
     sseClients={} # dict[path]=list[bytesio]
-    def sseSend(path,message):
+    def sseSend(path:str,message:str,event:str=None,id:str=None):
         if(path not in sseClients):
             return False
         if(len(sseClients[path])==0):
@@ -135,7 +135,14 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         for wfile in sseClients[path]:
             if wfile.closed:
                 continue
-            wfile.write(('data: '+str(message)+'\n\n').encode())
+            if id:
+                wfile.write(('id: '+id+'\n').encode())
+            if event:
+                wfile.write(('event: '+event+'\n').encode())
+            for part in message.split('\n'):
+                wfile.write(('data: '+part+'\n').encode())
+            wfile.write('\n'.encode())
+            wfile.flush()
             sent=True
         return sent
     def sseGet(request):
@@ -148,7 +155,9 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         sseSend('/sse',request.path)
     def ssePost(request):
         message=request.rfile.read().decode()
-        if not sseSend(request.path,message):
+        event=request.headers['event']
+        id=request.headers['id']
+        if not sseSend(request.path,message,event,id):
             return send_error(404)
         return send_response(200)
     pathFunctions['GET']['/sse']=sseGet
