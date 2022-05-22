@@ -52,7 +52,7 @@ def pip_install(*args,target=join(get_data_dir(),'packages')):
         from sys import executable
         python=executable
     from subprocess import run
-    run([python,'-m','pip','install','--no-warn-script-location','--progress-bar=off','--target='+target,*args],shell=True)
+    run([python,'-m','pip','install','--no-warn-script-location','--progress-bar=off','--upgrade','--target='+target,*args],shell=True)
 
 def start_server(static_dir=join(get_data_dir(),'static')):
     pathFunctions={
