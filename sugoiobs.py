@@ -2,7 +2,7 @@ from threading import Thread
 from os.path import basename,splitext,join,normpath
 from sys import platform,path,executable
 from os import environ,makedirs,system
-from http.server import HTTPServer,SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
 from traceback import format_exc,print_exc
 from urllib.request import urlopen
 import pip
@@ -79,8 +79,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             from re import match
             for path, function in pathFunctions[self.command].items():
                 if(match(path,self.path)):
-                    Thread(target=function,args=[self]).start()
-                    return True
+                    return function(self)!=False
             return False
         def do_GET(self):
             self.do_DISPATCH() or super().do_GET()
@@ -163,7 +162,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
     pathFunctions['GET']['/sse']=sseGet
     pathFunctions['POST']['/sse/']=ssePost
     global server
-    server=HTTPServer(('localhost',5000), RegexRequestHandler)
+    server=ThreadingHTTPServer(('localhost',5000), RegexRequestHandler)
     Thread(target=server.serve_forever,name='sugoiobs.py HTTPServer').start()
 
 def open_data_dir(*args):
