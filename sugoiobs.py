@@ -55,13 +55,7 @@ def pip_install(*args,target=join(get_data_dir(),'packages')):
     run([python,'-m','pip','install','--no-warn-script-location','--progress-bar=off','--upgrade','--target='+target,*args],shell=True)
 
 def start_server(static_dir=join(get_data_dir(),'static')):
-    pathFunctions={
-        'GET':{},
-        'HEAD':{},
-        'POST':{},
-        'PUT':{},
-        'DELETE':{}
-    } # dict[method][pathRegex]=function
+    pathFunctions={} # Dict{requestlineregex:function}
     class RegexRequestHandler(SimpleHTTPRequestHandler):
         protocol_version='HTTP/1.1'
         def log_message(self,format,*args):
@@ -77,8 +71,8 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             super().end_headers()
         def do_DISPATCH(self):
             from re import match
-            for path, function in pathFunctions[self.command].items():
-                if(match(path,self.path)):
+            for requestline, function in pathFunctions.items():
+                if(match(requestline,self.requestline)):
                     return function(self)!=False
             return False
         def do_GET(self):
@@ -90,6 +84,8 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         def do_PUT(self):
             self.do_DISPATCH()
         def do_DELETE(self):
+            self.do_DISPATCH()
+        def do_OPTIONS(self):
             self.do_DISPATCH()
     def audio(request):
         import sounddevice,numpy
@@ -123,7 +119,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         with sounddevice.InputStream(device=device,callback=audioCallback):
             while not request.wfile.closed:
                 sounddevice.sleep(16)
-    pathFunctions['GET']['/audio']=audio
+    pathFunctions['GET /audio']=audio
     sseClients={} # dict[path]=list[bytesio]
     def sseSend(path:str,message:str,event:str=None,id:str=None):
         if(path not in sseClients):
@@ -144,7 +140,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             wfile.flush()
             sent=True
         return sent
-    def sseGet(request):
+    def sseGet(request:RegexRequestHandler):
         if request.path not in sseClients:
             sseClients[request.path]=[]
         sseClients[request.path].append(request.wfile)
@@ -152,15 +148,23 @@ def start_server(static_dir=join(get_data_dir(),'static')):
         request.send_header('Content-Type','text/event-stream')
         request.end_headers()
         sseSend('/sse',request.path)
-    def ssePost(request):
-        message=request.rfile.read().decode()
+    def ssePost(request:RegexRequestHandler):
+        message=request.rfile.read(int(request.headers['Content-Length'])).decode()
         event=request.headers['event']
         id=request.headers['id']
         if not sseSend(request.path,message,event,id):
-            return send_error(404)
-        return send_response(200)
-    pathFunctions['GET']['/sse']=sseGet
-    pathFunctions['POST']['/sse/']=ssePost
+            request.send_error(404)
+        else:
+            request.send_response(204)
+        request.end_headers()
+    def sseOptions(request:RegexRequestHandler):
+        request.send_response(204)
+        request.send_header('Access-Control-Allow-Headers', 'event,id')
+        request.end_headers()
+    pathFunctions['GET /sse']=sseGet
+    pathFunctions['POST /sse/']=ssePost
+    pathFunctions['OPTIONS /sse/']=sseOptions
+    
     global server
     server=ThreadingHTTPServer(('localhost',5000), RegexRequestHandler)
     Thread(target=server.serve_forever,name='sugoiobs.py HTTPServer').start()
