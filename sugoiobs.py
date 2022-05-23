@@ -87,7 +87,7 @@ def start_server(static_dir=join(get_data_dir(),'static')):
             self.do_DISPATCH()
         def do_OPTIONS(self):
             self.do_DISPATCH()
-    def audio(request):
+    def audio(request:RegexRequestHandler):
         import sounddevice,numpy
         if request.path == '/audio/':
             response=json.dumps(sounddevice.query_devices(kind='input'))
